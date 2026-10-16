@@ -3,104 +3,78 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f3f5f7">
-  <title>Meu Vocabulário | ポルトガル語 語彙学習</title>
+  <meta name="theme-color" content="#f2f5f5">
+  <title>Meu Vocabulário | 定着するポルトガル語</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="app-header">
-      <div class="brand-row">
-        <div class="brand-mark" aria-hidden="true">BR</div>
-        <div class="brand-copy">
-          <h1>Meu Vocabulário</h1>
-          <p>ブラジルポルトガル語 · 語彙学習</p>
-        </div>
-        <span class="version">v0.1</span>
-      </div>
-      <nav class="main-nav" aria-label="画面切替">
-        <button type="button" class="nav-btn active" data-page="home">ホーム</button>
-        <button type="button" class="nav-btn" data-page="study">学習</button>
-        <button type="button" class="nav-btn" data-page="dictionary">単語帳</button>
+  <div class="shell">
+    <header class="header">
+      <div class="brand"><span class="brand-badge">BR</span><div><h1>Meu Vocabulário</h1><p>ブラジルポルトガル語 · 記憶に残る語彙学習</p></div><span class="version">v0.2</span></div>
+      <nav class="tabs" aria-label="メイン画面">
+        <button class="tab active" data-page="home" type="button">ホーム</button>
+        <button class="tab" data-page="study" type="button">学習</button>
+        <button class="tab" data-page="dictionary" type="button">単語帳</button>
       </nav>
     </header>
-
     <main>
-      <section id="page-home" class="page" aria-label="ホーム">
-        <div class="section-heading">
-          <div><p class="eyebrow">YOUR VOCABULARY</p><h2>少しずつ、確実に。</h2></div>
-          <span id="streakBadge" class="streak">0日継続</span>
+      <section class="page" id="page-home">
+        <div class="hero-head"><div><div class="eyebrow">EVERYDAY PROGRESS</div><h2>覚えるより、思い出せるように。</h2><p>今日は復習から。新しい単語は、余裕のある日に少しずつ。</p></div><span class="streak" id="streakBadge">0日継続</span></div>
+        <div class="stats">
+          <div class="stat"><span>使える語彙（習得）</span><strong id="statMastered">0<span> / 0語</span></strong></div>
+          <div class="stat"><span>今日の復習待ち</span><strong id="statDue">0<span>語</span></strong></div>
+          <div class="stat"><span>学習中</span><strong id="statLearning">0<span>語</span></strong></div>
+          <div class="stat"><span>直近7日</span><strong id="statWeek">0<span>問 / 0分</span></strong></div>
         </div>
-        <div class="stat-grid">
-          <div class="stat-card"><span>習得した語彙</span><strong id="statMastered">0 <small>/ 0語</small></strong></div>
-          <div class="stat-card"><span>今日の復習待ち</span><strong id="statDue">0 <small>語</small></strong></div>
-          <div class="stat-card"><span>学習中</span><strong id="statLearning">0 <small>語</small></strong></div>
-          <div class="stat-card"><span>今日の学習</span><strong id="statToday">0 <small>回 · 0分</small></strong></div>
-        </div>
-        <div class="card mastery-card">
-          <div class="card-top"><h3>語彙の定着状況</h3><span id="totalLabel">全0語</span></div>
-          <div class="mastery-track" aria-label="語彙の習得状況">
-            <div id="barMastered" class="mastery-segment mastered"></div>
-            <div id="barFamiliar" class="mastery-segment familiar"></div>
-            <div id="barLearning" class="mastery-segment learning"></div>
-          </div>
+        <div class="panel progress-panel">
+          <div class="panel-heading"><h3>語彙の定着状況</h3><small id="totalWords">0語</small></div>
+          <div class="progress-bar"><div id="barMastered" class="bar mastered"></div><div id="barFamiliar" class="bar familiar"></div><div id="barLearning" class="bar learning"></div></div>
           <div class="legend"><span><i class="dot mastered"></i>習得 <b id="countMastered">0</b></span><span><i class="dot familiar"></i>定着途中 <b id="countFamiliar">0</b></span><span><i class="dot learning"></i>学習中 <b id="countLearning">0</b></span><span><i class="dot new"></i>未学習 <b id="countNew">0</b></span></div>
         </div>
-        <div class="card launch-card">
-          <div class="launch-top"><div><p class="eyebrow">TODAY'S PLAN</p><h3>今日の学習</h3><p id="planSummary" class="muted">復習を優先し、余裕があれば新しい単語へ。</p></div><span class="launch-icon" aria-hidden="true">↗</span></div>
-          <button type="button" id="startToday" class="primary-btn wide">今日の学習を始める <span aria-hidden="true">→</span></button>
-          <div class="launch-options"><button type="button" id="startNew" class="text-btn">新しい単語</button><button type="button" id="startWeak" class="text-btn">苦手語彙</button></div>
+        <div class="panel plan">
+          <div class="eyebrow">YOUR NEXT STEP</div><div class="panel-heading"><h3>今日の学習</h3><span class="round-badge">↗</span></div>
+          <p class="muted" id="planSummary">復習期限を確認しています...</p>
+          <button id="startToday" class="primary-btn main-start" type="button">今日の学習を始める <span>→</span></button>
+          <div class="secondary-row"><button id="startNew" type="button">新しい語彙</button><button id="startWeak" type="button">苦手語彙</button></div>
         </div>
-        <div class="card categories-card">
-          <div class="card-top"><h3>カテゴリから学ぶ</h3><span>教材横断</span></div>
-          <div id="categoryGrid" class="category-grid"></div>
-        </div>
-        <p class="storage-note">学習履歴はこのブラウザ内に保存されます。別の端末には自動同期されません。</p>
+        <div class="panel week-panel"><div class="panel-heading"><h3>直近7日間の学習</h3><small>日ごとの問題数・時間</small></div><div class="week-grid" id="weekGrid"></div></div>
+        <div class="panel categories"><div class="panel-heading"><h3>カテゴリ別に学ぶ</h3><small>1周するまで重複なし</small></div><div class="category-grid" id="categoryGrid"></div></div>
+        <details class="panel settings"><summary>学習データのバックアップ・復元</summary><p>学習履歴はこのブラウザに保存されます。機種変更前にはバックアップしてください。</p><div class="settings-row"><button id="exportData" type="button">履歴をファイルに保存</button><button id="importTrigger" type="button">履歴ファイルを読み込む</button><input type="file" accept="application/json,.json" id="importFile" class="hidden"></div><p class="status-note" id="importStatus" aria-live="polite"></p></details>
+        <p class="footer-note">教材テーマ別の補充語彙を含みます。原典3冊の全ページ照合は未完了です。</p>
       </section>
-
-      <section id="page-study" class="page hidden" aria-label="学習">
-        <div class="study-top">
-          <button type="button" id="studyBack" class="back-link">← ホームへ</button>
-          <div class="study-top-right"><span id="studyMode" class="mode-tag">今日の学習</span><span id="studyCounter" class="muted">0 / 0</span></div>
-        </div>
-        <div class="study-progress" aria-hidden="true"><div id="studyProgressFill"></div></div>
-        <div id="studyCard" class="study-card">
-          <div class="study-meta"><span id="studyCategory" class="category-tag">語彙</span><span id="studyDirection" class="direction-tag">Português → 日本語</span></div>
-          <p id="studyInstruction" class="study-instruction">意味を思い出してください</p>
-          <h2 id="studyPrompt" class="study-prompt">...</h2>
-          <div id="studyAnswer" class="answer-panel hidden" aria-live="polite">
-            <p class="answer-label">答え</p>
-            <p id="answerMain" class="answer-main"></p>
-            <p id="answerMeta" class="answer-meta"></p>
-            <div id="answerCollocations" class="answer-section hidden"><p class="mini-label">よく使う形・関連表現</p><div id="collocationList" class="chips"></div></div>
-            <div id="answerExample" class="answer-section hidden"><p class="mini-label">例文</p><p id="examplePt" class="example-pt"></p><p id="exampleJa" class="example-ja"></p></div>
-            <p id="answerSource" class="answer-source"></p>
+      <section class="page hidden" id="page-study">
+        <div class="study-head"><button id="studyBack" class="link-btn" type="button">← ホームへ</button><div class="study-head-right"><span class="study-mode" id="studyMode">今日の学習</span><span id="studyCounter">1 / 10</span></div></div>
+        <div class="study-progress"><div id="studyProgressFill"></div></div>
+        <div class="question-card" id="studyCard">
+          <div class="question-meta"><span id="studyCategory" class="category-tag">カテゴリ</span><span id="studyDirection" class="direction-tag">葡 → 日</span><button id="sayWord" class="sound-btn" type="button" title="ポルトガル語の発音を聞く" aria-label="発音を聞く">🔊</button></div>
+          <p class="question-instruction" id="studyInstruction">意味を思い出してください</p>
+          <h2 id="studyPrompt" class="question-prompt">...</h2>
+          <div id="studyAnswer" class="answer hidden" aria-live="polite">
+            <div class="answer-header">答え</div><div id="answerMain" class="answer-main"></div>
+            <div class="answer-meta" id="answerMeta"></div>
+            <div id="answerAdditional" class="answer-additional hidden"></div>
+            <div id="answerCollocations" class="answer-part hidden"><h4>よく使う表現</h4><div id="collocationList" class="chips"></div></div>
+            <div id="answerConjugations" class="answer-part hidden"><details><summary>活用（eu / você / nós / eles）</summary><div id="conjugationBody"></div></details></div>
+            <div id="answerExample" class="answer-part hidden"><h4>例文</h4><p id="examplePt" class="example-pt"></p><p id="exampleJa" class="example-ja"></p></div>
+            <div id="answerSource" class="answer-source"></div>
           </div>
         </div>
-        <div id="studyFinished" class="card finish-card hidden"><div class="finish-icon">✓</div><h2>今回の学習は完了です</h2><p id="finishSummary" class="muted"></p><button type="button" id="finishHome" class="primary-btn">ホームへ戻る</button></div>
-        <p id="studyHint" class="study-footnote">「覚えた」だけで習得にはなりません。日を空けて思い出せた語彙が定着します。</p>
+        <div id="studyFinished" class="panel finish hidden"><div class="finish-mark">✓</div><h2 id="finishTitle">今回の学習は完了です</h2><p id="finishSummary"></p><button class="primary-btn" id="finishHome" type="button">ホームへ戻る</button><button id="finishMore" class="secondary-btn" type="button">続きを学ぶ</button></div>
+        <p class="study-note" id="studyHint">同じ日に何度正解しても、習得判定は日を空けた復習を重視します。</p>
       </section>
-
-      <section id="page-dictionary" class="page hidden" aria-label="単語帳">
-        <div class="section-heading"><div><p class="eyebrow">WORD LIBRARY</p><h2>単語帳・検索</h2></div><span id="dictTotal" class="streak">0語</span></div>
-        <div class="card dict-controls"><label class="input-label" for="dictSearch">単語・日本語で検索</label><input id="dictSearch" type="search" placeholder="例：estoque / 在庫" autocomplete="off"><div class="filter-row"><select id="dictCategory" aria-label="カテゴリ"><option value="all">すべてのカテゴリ</option></select><select id="dictStage" aria-label="習熟度"><option value="all">すべての習熟度</option><option value="new">未学習</option><option value="learning">学習中</option><option value="familiar">定着途中</option><option value="mastered">習得済み</option></select></div></div>
-        <p id="dictCount" class="dict-count">0語</p>
-        <div id="dictResults" class="dict-results"></div>
-        <div id="dictDetail" class="card dict-detail hidden" aria-live="polite"></div>
+      <section class="page hidden" id="page-dictionary">
+        <div class="dict-heading"><div class="eyebrow">WORD LIBRARY</div><h2>単語帳</h2><p>意味、性、活用、関連表現を確認できます。</p></div>
+        <div class="panel dict-filters"><label for="dictSearch">ポルトガル語・日本語で検索</label><input id="dictSearch" type="search" placeholder="例：negociar / 交渉" autocomplete="off"><div class="filter-grid"><select id="dictCategory" aria-label="カテゴリ"><option value="all">すべてのカテゴリ</option></select><select id="dictStage" aria-label="習熟度"><option value="all">すべての習熟度</option><option value="new">未学習</option><option value="learning">学習中</option><option value="familiar">定着途中</option><option value="mastered">習得済み</option></select></div></div>
+        <div class="dict-count" id="dictCount">0語</div><div id="dictResults" class="word-list"></div><button class="more-btn hidden" id="dictMore" type="button">さらに表示</button>
       </section>
     </main>
   </div>
-
-  <div id="actionDock" class="action-dock hidden" aria-label="学習操作">
-    <button type="button" id="revealBtn" class="dock-reveal">答えを見る</button>
-    <div id="ratingButtons" class="rating-buttons hidden">
-      <button type="button" class="rating-btn wrong" data-grade="0">×<span>知らない</span></button>
-      <button type="button" class="rating-btn unsure" data-grade="1">△<span>あやふや</span></button>
-      <button type="button" class="rating-btn good" data-grade="2">○<span>覚えた</span></button>
-    </div>
-    <div class="dock-bottom"><button type="button" id="previousBtn" class="dock-secondary" disabled>← 前の問題</button><span id="dockTip">まず頭の中で答える</span></div>
+  <div id="actionDock" class="action-dock hidden">
+    <button id="revealBtn" type="button" class="reveal-btn">答えを見る</button>
+    <div id="ratingButtons" class="rating-buttons hidden"><button type="button" data-grade="0" class="rate wrong">×<span>知らない</span></button><button type="button" data-grade="1" class="rate unsure">△<span>あやふや</span></button><button type="button" data-grade="2" class="rate good">○<span>覚えた</span></button></div>
+    <div class="dock-bottom"><button id="previousBtn" type="button" class="link-btn">← 前の問題</button><small id="dockTip">まず頭の中で答える</small></div>
   </div>
-
+  <dialog id="detailDialog" class="detail-dialog"><button id="detailClose" type="button" class="detail-close" aria-label="閉じる">×</button><div id="detailBody"></div></dialog>
   <script src="vocabulary.js"></script>
   <script src="app.js"></script>
 </body>
