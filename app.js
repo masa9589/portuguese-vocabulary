@@ -7,6 +7,7 @@
   const EVENT_KEY = 'por_vocab_v02_events';
   const CYCLE_KEY = 'por_vocab_v02_cycles';
   const SESSION_KEY = 'por_vocab_v02_session';
+  const LESSONS = Array.isArray(window.LESSONS) ? window.LESSONS : [];
   const MAX_EVENT_LOG = 18000;
   const NEW_PER_DAY = 10;
   const SESSION_REVIEW_MAX = 38;
@@ -232,6 +233,13 @@
     return m&&m.lastSuccessDate!==today&&(m.lastGrade!==2||m.lapses>0||(!m.dueAt||m.dueAt<=Date.now()));
   }).sort((a,b)=>(progress[b.id]?.recall?.lapses||progress[b.id]?.read?.lapses||0)-(progress[a.id]?.recall?.lapses||progress[a.id]?.read?.lapses||0));}
   function bestDirection(w){const r=getRec(w);return r&&recallUnlocked(r)?'recall':'read';}
+  function startLessonSession(lessonId){
+    const lesson=LESSONS.find(x=>x.id===lessonId)||LESSONS[0];
+    if(!lesson)return;
+    const list=lesson.cards.map(card=>({id:card.id,direction:'lesson',isRetry:false}));
+    session={mode:'lesson',cat:lesson.id,label:lesson.title,lessonId:lesson.id,initialTotal:list.length,completed:0,attempts:{},grades:[0,0,0],startedAt:Date.now()};
+    queue=list;current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();snapshots=[];saveSession();setPage('study');
+  }
   function startSession(mode='today',cat='all',forceReset=true){
     if(mode==='today'&&!forceReset&&session&&current){setPage('study');return;}
     let list=[];
@@ -286,22 +294,32 @@
     return extraRepeat;
   }
   function gradeCard(score){if(!current||!revealed||!session)return;
-    const card=current,w=BY_ID.get(card.id);
+    const card=current;
+    if(session.mode==='lesson'){
+      snapshots.push({card:copy(card),queue:copy(queue),prevSession:copy(session),eventLength:events.length});
+      events.push({id:card.id,date:dayKey(),timestamp:Date.now(),grade:score,direction:'lesson',seconds:estimateTime(),mode:'lesson'});
+      if(events.length>MAX_EVENT_LOG)events=events.slice(-MAX_EVENT_LOG);
+      session.completed++;session.grades[score]++;session.attempts[card.id]=(session.attempts[card.id]||0)+1;
+      if((score===0||score===1)&&!card.isRetry)queue.splice(Math.min(queue.length,4),0,{id:card.id,direction:'lesson',isRetry:true});
+      current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();persist();saveSession();renderStudy();return;
+    }
+    const w=BY_ID.get(card.id);
     snapshots.push({card:copy(card),oldRec:progress[w.id]?copy(progress[w.id]):null,oldCycles:session.mode==='category'?copy(getCycle(session.cat)):null,queue:copy(queue),prevSession:copy(session),eventLength:events.length});
     if(snapshots.length>15)snapshots.shift();
     const needRepeat=markGrade(card,score,!!card.isRetry);
     if(session.mode==='category'&&!card.isRetry){const c=getCycle(session.cat);if(!c.seen.includes(card.id))c.seen.push(card.id);}
     events.push({id:card.id,date:dayKey(),timestamp:Date.now(),grade:score,direction:card.direction,seconds:estimateTime(),mode:session.mode});
     if(events.length>MAX_EVENT_LOG)events=events.slice(-MAX_EVENT_LOG);
-    session.completed++;session.grades[score]++;
-    session.attempts[card.id]=(session.attempts[card.id]||0)+1;
+    session.completed++;session.grades[score]++;session.attempts[card.id]=(session.attempts[card.id]||0)+1;
     if(needRepeat&&!queue.some(c=>c.id===card.id)){
       const offset=Math.min(queue.length,score===0?5:8);
       queue.splice(offset,0,{id:card.id,direction:card.direction,isRetry:true});
     }
     current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();persist();saveSession();renderStudy();
   }
-  function undo(){if(!snapshots.length||!session)return;const s=snapshots.pop();const id=s.card.id;
+  function undo(){if(!snapshots.length||!session)return;const s=snapshots.pop();
+    if(session.mode==='lesson'){events=events.slice(0,s.eventLength);queue=s.queue;current=s.card;session=s.prevSession;revealed=true;answerStartedAt=Date.now();persist();saveSession();renderStudy();return;}
+    const id=s.card.id;
     if(s.oldRec)progress[id]=s.oldRec;else delete progress[id];
     if(s.oldCycles)cycles[session.cat]=s.oldCycles;
     events=events.slice(0,s.eventLength);queue=s.queue;current=s.card;session=s.prevSession;revealed=true;answerStartedAt=Date.now();persist();saveSession();renderStudy();
@@ -315,6 +333,12 @@
     const budget=newBudget(due);
     setText('planSummary',`復習 ${due}語 ・ 新しい語彙 最大${budget}語（1日上限${NEW_PER_DAY}語）`);
     setText('startToday',session&&current?'学習を続ける →':'今日の学習を始める →');
+    const lesson=LESSONS[0];
+    setText('lessonTitle',lesson?.title||'今日のレッスン');
+    setText('lessonSubtitle',lesson?.subtitle||'授業内容を復習');
+    setText('lessonCount',lesson?`${lesson.cards.length}問`:'');
+    setText('lessonSummary',lesson?'授業で繰り返した表現・先生の訂正・財務語彙を、このセッションだけで集中的に復習します。':'今日の授業復習はありません。');
+    $('startLesson').disabled=!lesson;
     renderWeek(week);renderCategories();
   }
   function lastWeek(){const a=[];const cur=new Date();cur.setHours(12,0,0,0);for(let i=6;i>=0;i--){const d=new Date(cur);d.setDate(cur.getDate()-i);const key=dayKey(d.getTime()),es=events.filter(e=>e.date===key);a.push({key,short:`${d.getMonth()+1}/${d.getDate()}`,count:es.length,seconds:es.reduce((s,e)=>s+(Number(e.seconds)||0),0)});}return a;}
@@ -336,14 +360,39 @@
     if(finished){
       const c=session.grades||[0,0,0];const total=session.completed||0;
       let msg=total?`${total}回学習 ・ 覚えた ${c[2]}回 / あやふや ${c[1]}回 / 知らない ${c[0]}回`:'現在の条件で出題できる語彙がありません。';
-      let title='今回の学習は完了です';toggle('finishMore',session.mode!=='category');
-      if(session.mode==='category'){
+      let title='今回の学習は完了です';toggle('finishMore',session.mode!=='category'&&session.mode!=='lesson');
+      if(session.mode==='lesson'){msg+='\n今日の授業復習を完了しました。知らない・あやふやの問題は同じセッション内で再出題されました。';}
+      else if(session.mode==='category'){
         const cycle=getCycle(session.cat),left=getRemainingCycle(session.cat).length;
         if(left===0){title=`${session.cat}：${cycle.round}周目を完了！`;msg+=`\nこのカテゴリの全${cycle.seen.length}語を一巡しました。次の周回を手動で始められます。`;setText('finishMore','次の周回へ');}
         else{msg+=`\n残り ${left}語でこのカテゴリを一巡します。`;setText('finishMore','同じカテゴリを続ける');}
         toggle('finishMore',false);
       }
       setText('finishTitle',title);setText('finishSummary',msg);setText('studyCounter',`${total}回`);$('studyProgressFill').style.width='100%';return;
+    }
+    if(session.mode==='lesson'){
+      const lesson=LESSONS.find(x=>x.id===session.lessonId);
+      const item=lesson?.cards.find(x=>x.id===current.id);
+      if(!item){current=queue.shift()||null;renderStudy();return;}
+      setText('studyCategory','今日のレッスン'+(current.isRetry?' · もう一度':''));
+      setText('studyDirection',item.type==='fill'?'穴埋め':'翻訳');
+      setText('studyInstruction',item.instruction||'答えてください');
+      setText('studyPrompt',item.prompt);
+      setText('answerMain',item.answer);
+      setText('answerMeta','');
+      const add=$('answerAdditional');add.replaceChildren();
+      if(item.note)add.append(el('span','',item.note));
+      toggle('answerAdditional',!add.childElementCount);
+      toggle('answerCollocations',true);toggle('answerConjugations',true);toggle('answerExample',true);
+      setText('answerSource','出典：2026-10-20 授業メモ・音声文字起こし・「Gestão financeira em uma empresa farmacêutica」');
+      toggle('studyAnswer',!revealed);toggle('revealBtn',revealed);toggle('ratingButtons',!revealed);
+      $('sayWord').disabled=true;
+      $('previousBtn').disabled=!snapshots.length;
+      setText('dockTip',revealed?'自己評価して次へ':'頭の中で答える');
+      const done=session.completed,remain=queue.length+1;
+      setText('studyCounter',`${done+1} / ${done+remain}`);
+      $('studyProgressFill').style.width=(100*done/Math.max(1,done+remain))+'%';
+      return;
     }
     const w=BY_ID.get(current.id);if(!w){current=queue.shift()||null;renderStudy();return;}
     const recall=current.direction==='recall';
@@ -418,6 +467,7 @@
     $('startToday').addEventListener('click',()=>startSession('today','all',false));
     $('startNew').addEventListener('click',()=>startSession('new'));
     $('startWeak').addEventListener('click',()=>startSession('weak'));
+    $('startLesson').addEventListener('click',()=>startLessonSession(LESSONS[0]?.id));
     $('studyBack').addEventListener('click',()=>setPage('home'));
     $('finishHome').addEventListener('click',()=>setPage('home'));
     $('finishMore').addEventListener('click',continueCategory);
