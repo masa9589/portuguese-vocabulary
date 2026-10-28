@@ -1,4 +1,4 @@
-/* Meu Vocabulario v0.2 — learning system, data independent. */
+/* Meu Vocabulario v0.5 — review-first learning, no daily hard cap. */
 (() => {
   'use strict';
   const WORDS = Array.isArray(window.VOCABULARY) ? window.VOCABULARY.filter(w => w && w.id && w.pt && Array.isArray(w.meanings) && w.meanings.length) : [];
@@ -7,9 +7,11 @@
   const EVENT_KEY = 'por_vocab_v02_events';
   const CYCLE_KEY = 'por_vocab_v02_cycles';
   const SESSION_KEY = 'por_vocab_v02_session';
+  const LESSON_PROGRESS_KEY = 'por_vocab_v05_lesson_progress';
   const LESSONS = Array.isArray(window.LESSONS) ? window.LESSONS : [];
   const MAX_EVENT_LOG = 18000;
-  const NEW_PER_DAY = 10;
+  const RECOMMENDED_NEW = 12;
+  const NEW_BATCH_SIZE = 20;
   const SESSION_REVIEW_MAX = 38;
   const CATEGORY_SESSION_MAX = 22;
   const STATUS = {new:'未学習',learning:'学習中',familiar:'定着途中',mastered:'習得済み'};
@@ -49,10 +51,12 @@
   let progress=readJSON(KEY,null);
   let events=readJSON(EVENT_KEY,null);
   let cycles=readJSON(CYCLE_KEY,{});
+  let lessonProgress=readJSON(LESSON_PROGRESS_KEY,{});
   if(!progress||typeof progress!=='object'||Array.isArray(progress))progress=migrateOld();
   if(!Array.isArray(events))events=readJSON('por_vocab_v01_events',[]).map(e=>({...e,direction:'read'}));
   if(!cycles||typeof cycles!=='object'||Array.isArray(cycles))cycles={};
-  function persist() {saveJSON(KEY,progress);saveJSON(EVENT_KEY,events.slice(-MAX_EVENT_LOG));saveJSON(CYCLE_KEY,cycles);}
+  if(!lessonProgress||typeof lessonProgress!=='object'||Array.isArray(lessonProgress))lessonProgress={};
+  function persist() {saveJSON(KEY,progress);saveJSON(EVENT_KEY,events.slice(-MAX_EVENT_LOG));saveJSON(CYCLE_KEY,cycles);saveJSON(LESSON_PROGRESS_KEY,lessonProgress);}
   const getRec = w => progress[w.id]||null;
   function ensureRec(w){if(!progress[w.id])progress[w.id]={firstSeenDate:dayKey(),read:modeModel(),recall:null};return progress[w.id];}
   function readMode(rec,dir){return rec&&rec[dir]?normalizeMode(rec[dir]):null;}
@@ -99,7 +103,48 @@
     return out;
   }
   function introducedToday(){return Object.values(progress).filter(r=>r&&r.firstSeenDate===dayKey()).length;}
-  function newBudget(nDue){const left=Math.max(0,NEW_PER_DAY-introducedToday());return nDue>24?0:nDue>12?Math.min(left,5):left;}
+  function newBudget(nDue){const recommended=nDue>24?0:nDue>12?5:RECOMMENDED_NEW;return Math.max(0,recommended-introducedToday());}
+  function lessonModel(){return {passedDates:[],dueAt:0,intervalDays:0,streak:0,lastGrade:null,lastPracticeDate:'',lapses:0};}
+  function migrateLessonEvents(){
+    if(Object.keys(lessonProgress).length)return;
+    const byCard=new Map();
+    for(const e of events){if(e.mode!=='lesson'||!e.id)continue;const ids=LESSONS.filter(l=>l.cards.some(c=>c.id===e.id));if(ids.length!==1)continue;
+      const key=ids[0].id+'::'+e.id;const old=byCard.get(key);if(!old||Number(e.timestamp)>Number(old.timestamp))byCard.set(key,e);
+    }
+    for(const [key,e] of byCard){const grade=Number(e.grade);const day=e.date||dayKey(e.timestamp);const date=new Date(day+'T12:00:00');date.setDate(date.getDate()+1);date.setHours(0,0,0,0);
+      lessonProgress[key]={...lessonModel(),lastGrade:grade,lastPracticeDate:day,passedDates:grade===2?[day]:[],streak:grade===2?1:0,intervalDays:1,dueAt:date.getTime(),lapses:grade===0?1:0};
+    }
+    if(byCard.size)saveJSON(LESSON_PROGRESS_KEY,lessonProgress);
+  }
+  migrateLessonEvents();
+  function lessonRecord(id){return lessonProgress[id]||null;}
+  function ensureLessonRecord(id){if(!lessonProgress[id])lessonProgress[id]=lessonModel();return lessonProgress[id];}
+  function lessonCards(){return LESSONS.flatMap(l=>l.cards.map(c=>({lessonId:l.id,cardId:c.id,key:l.id+'::'+c.id})));}
+  function lessonDueItems(lessonId=null){return lessonCards().filter(c=>(!lessonId||c.lessonId===lessonId)&&lessonRecord(c.key)&&Number(lessonRecord(c.key).dueAt)<=Date.now());}
+  function lessonDueCount(lessonId=null){return lessonDueItems(lessonId).length;}
+  function overdueCount(){const midnight=new Date();midnight.setHours(0,0,0,0);const cutoff=midnight.getTime();
+    const vocab=dueCards().filter(c=>{const m=progress[c.id]?.[c.direction];return m&&Number(m.dueAt)<cutoff;}).length;
+    const lesson=lessonCards().filter(c=>{const m=lessonRecord(c.key);return m&&Number(m.dueAt)<cutoff;}).length;
+    return vocab+lesson;
+  }
+  function nextDueDate(){const future=[];
+    for(const r of Object.values(progress))for(const direction of ['read','recall']){const m=r?.[direction];if(m&&Number(m.dueAt)>Date.now())future.push(Number(m.dueAt));}
+    for(const r of Object.values(lessonProgress))if(r&&Number(r.dueAt)>Date.now())future.push(Number(r.dueAt));
+    if(!future.length)return '未定';const d=new Date(Math.min(...future));return `${d.getMonth()+1}/${d.getDate()}`;
+  }
+  function markLessonGrade(card,grade){const key=session.lessonId+'::'+card.id;const m=ensureLessonRecord(key);const today=dayKey();
+    if(grade===2){
+      if(!card.isRetry&&!m.passedDates.includes(today)){
+        m.passedDates.push(today);m.streak=(m.streak||0)+1;
+        const stages=[1,3,7,14,30,60,120];m.intervalDays=stages[Math.min(m.streak-1,stages.length-1)];
+      }
+      m.dueAt=nextDay(Math.max(1,m.intervalDays||1));
+    }else{
+      m.streak=0;m.intervalDays=1;m.dueAt=nextDay(1);
+      if(grade===0)m.lapses=(m.lapses||0)+1;
+    }
+    m.lastGrade=grade;m.lastPracticeDate=today;
+  }
   function counts(){const c={new:0,learning:0,familiar:0,mastered:0};for(const w of WORDS)c[statusOf(w)]++;return c;}
   function getStreak(){const days=new Set(events.map(e=>e.date));const d=new Date();d.setHours(12,0,0,0);if(!days.has(dayKey(d.getTime())))d.setDate(d.getDate()-1);let n=0;for(let i=0;i<600;i++){if(!days.has(dayKey(d.getTime())))break;n++;d.setDate(d.getDate()-1);}return n;}
   function genderText(w){
@@ -219,10 +264,10 @@
     session=s.session;queue=s.queue;current=s.current;revealed=!!s.revealed;
   }
   restoreSession();
-  function setPage(name){page=name;for(const n of ['home','study','dictionary'])toggle('page-'+n,n!==name);
+  function setPage(name){page=name;for(const n of ['home','study','dictionary','audio'])toggle('page-'+n,n!==name);
     for(const btn of document.querySelectorAll('.tab'))btn.classList.toggle('active',btn.dataset.page===name);
     toggle('actionDock',name!=='study'||!current);
-    if(name==='home')renderHome();if(name==='study')renderStudy();if(name==='dictionary')renderDictionary();
+    if(name==='home')renderHome();if(name==='study')renderStudy();if(name==='dictionary')renderDictionary();if(name==='audio'&&window.refreshAudioLibrary)window.refreshAudioLibrary();
     window.scrollTo({top:0,behavior:'instant'});
   }
   function getCycle(cat){if(!cycles[cat]||!Number(cycles[cat].round)||!Array.isArray(cycles[cat].seen))cycles[cat]={round:1,seen:[]};return cycles[cat];}
@@ -233,31 +278,31 @@
     return m&&m.lastSuccessDate!==today&&(m.lastGrade!==2||m.lapses>0||(!m.dueAt||m.dueAt<=Date.now()));
   }).sort((a,b)=>(progress[b.id]?.recall?.lapses||progress[b.id]?.read?.lapses||0)-(progress[a.id]?.recall?.lapses||progress[a.id]?.read?.lapses||0));}
   function bestDirection(w){const r=getRec(w);return r&&recallUnlocked(r)?'recall':'read';}
-  function startLessonSession(lessonId){
+  function startLessonSession(lessonId,onlyDue=false){
     const lesson=LESSONS.find(x=>x.id===lessonId)||LESSONS[0];
     if(!lesson)return;
-    const list=lesson.cards.map(card=>({id:card.id,direction:'lesson',isRetry:false}));
-    session={mode:'lesson',cat:lesson.id,label:lesson.title,lessonId:lesson.id,initialTotal:list.length,completed:0,attempts:{},grades:[0,0,0],startedAt:Date.now()};
+    const list=lesson.cards.filter(card=>!onlyDue||lessonDueItems(lesson.id).some(x=>x.cardId===card.id)).map(card=>({id:card.id,direction:'lesson',isRetry:false}));
+    session={mode:'lesson',cat:lesson.id,label:lesson.title,lessonId:lesson.id,onlyDue,initialTotal:list.length,completed:0,attempts:{},grades:[0,0,0],startedAt:Date.now()};
     queue=list;current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();snapshots=[];saveSession();setPage('study');
   }
   function startSession(mode='today',cat='all',forceReset=true){
     if(mode==='today'&&!forceReset&&session&&current){setPage('study');return;}
     let list=[];
     const due=dueCards(cat);
-    if(mode==='today'){
+    if(mode==='today'||mode==='review'){
       list=due.slice(0,SESSION_REVIEW_MAX);
-      const n=Math.min(newBudget(due.length),Math.max(0,SESSION_REVIEW_MAX-list.length));
+      const n=mode==='today'?Math.min(newBudget(due.length),Math.max(0,SESSION_REVIEW_MAX-list.length)):0;
       const fresh=newCandidates(cat).slice(0,n).map(w=>({id:w.id,direction:'read',isRetry:false}));
       if(list.length){for(const w of fresh)list.splice(Math.min(list.length,3+3*fresh.indexOf(w)),0,w);}else list=fresh;
     } else if(mode==='new'){
-      list=newCandidates(cat).slice(0,Math.max(0,NEW_PER_DAY-introducedToday())).map(w=>({id:w.id,direction:'read',isRetry:false}));
+      list=newCandidates(cat).slice(0,NEW_BATCH_SIZE).map(w=>({id:w.id,direction:'read',isRetry:false}));
     } else if(mode==='weak'){
       list=weakCandidates().slice(0,35).map(w=>({id:w.id,direction:bestDirection(w),isRetry:false}));
     } else if(mode==='category'){
       const c=getCycle(cat);
       list=shuffled(getRemainingCycle(cat),cat+'|'+c.round).slice(0,CATEGORY_SESSION_MAX).map(w=>({id:w.id,direction:bestDirection(w),isRetry:false}));
     }
-    const label=mode==='today'?'今日の学習':mode==='new'?'新しい単語':mode==='weak'?'苦手語彙':cat;
+    const label=mode==='today'?'今日の学習':mode==='review'?'期限が来た復習':mode==='new'?'新しい単語':mode==='weak'?'苦手語彙':cat;
     session={mode,cat,label,initialTotal:list.length,completed:0,attempts:{},grades:[0,0,0],startedAt:Date.now()};
     queue=list;current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();snapshots=[];saveSession();setPage('study');
   }
@@ -296,9 +341,10 @@
   function gradeCard(score){if(!current||!revealed||!session)return;
     const card=current;
     if(session.mode==='lesson'){
-      snapshots.push({card:copy(card),queue:copy(queue),prevSession:copy(session),eventLength:events.length});
+      snapshots.push({card:copy(card),queue:copy(queue),prevSession:copy(session),oldLessonRec:lessonRecord(session.lessonId+'::'+card.id)?copy(lessonRecord(session.lessonId+'::'+card.id)):null,eventLength:events.length});
       events.push({id:card.id,date:dayKey(),timestamp:Date.now(),grade:score,direction:'lesson',seconds:estimateTime(),mode:'lesson'});
       if(events.length>MAX_EVENT_LOG)events=events.slice(-MAX_EVENT_LOG);
+      markLessonGrade(card,score);
       session.completed++;session.grades[score]++;session.attempts[card.id]=(session.attempts[card.id]||0)+1;
       if((score===0||score===1)&&!card.isRetry)queue.splice(Math.min(queue.length,4),0,{id:card.id,direction:'lesson',isRetry:true});
       current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();persist();saveSession();renderStudy();return;
@@ -318,27 +364,32 @@
     current=queue.shift()||null;revealed=false;answerStartedAt=Date.now();persist();saveSession();renderStudy();
   }
   function undo(){if(!snapshots.length||!session)return;const s=snapshots.pop();
-    if(session.mode==='lesson'){events=events.slice(0,s.eventLength);queue=s.queue;current=s.card;session=s.prevSession;revealed=true;answerStartedAt=Date.now();persist();saveSession();renderStudy();return;}
+    if(session.mode==='lesson'){const key=session.lessonId+'::'+s.card.id;if(s.oldLessonRec)lessonProgress[key]=s.oldLessonRec;else delete lessonProgress[key];events=events.slice(0,s.eventLength);queue=s.queue;current=s.card;session=s.prevSession;revealed=true;answerStartedAt=Date.now();persist();saveSession();renderStudy();return;}
     const id=s.card.id;
     if(s.oldRec)progress[id]=s.oldRec;else delete progress[id];
     if(s.oldCycles)cycles[session.cat]=s.oldCycles;
     events=events.slice(0,s.eventLength);queue=s.queue;current=s.card;session=s.prevSession;revealed=true;answerStartedAt=Date.now();persist();saveSession();renderStudy();
   }
-  function renderHome(){const c=counts(),due=dueCards().length;
+  function renderHome(){const c=counts(),due=dueCards().length,lessonDue=lessonDueCount();
     setStat('statMastered',c.mastered,` / ${WORDS.length}語`);setStat('statDue',due,'語');setStat('statLearning',c.learning+c.familiar,'語');
+    setText('dueVocabCount',`${due}語`);setText('dueLessonCount',`${lessonDue}問`);setText('overdueCount',`${overdueCount()}件`);
+    setText('nextDue',due+lessonDue?'今すぐ復習できます':`次回の復習予定：${nextDueDate()}`);
+    $('startReview').disabled=!due;
+    $('startReview').textContent=due?`語彙の復習を始める（${due}語待ち） →`:'語彙の復習は完了';
     const week=lastWeek();const n=week.reduce((a,b)=>a+b.count,0),minutes=Math.floor(week.reduce((a,b)=>a+b.seconds,0)/60);
     setStat('statWeek',n,`問 / ${minutes}分`);setText('streakBadge',`${getStreak()}日継続`);setText('totalWords',`全${WORDS.length}語`);
     for(const key of ['mastered','familiar','learning','new'])setText('count'+key[0].toUpperCase()+key.slice(1),c[key]);
     for(const key of ['mastered','familiar','learning'])$('bar'+key[0].toUpperCase()+key.slice(1)).style.width=(WORDS.length?100*c[key]/WORDS.length:0)+'%';
     const budget=newBudget(due);
-    setText('planSummary',`復習 ${due}語 ・ 新しい語彙 最大${budget}語（1日上限${NEW_PER_DAY}語）`);
+    setText('planSummary',`語彙復習 ${due}語・授業復習 ${lessonDue}問。新規は今日あと${budget}語程度を推奨（上限なし）。`);
     setText('startToday',session&&current?'学習を続ける →':'今日の学習を始める →');
     const lessonId=$('lessonSelect')?.value;
     const lesson=LESSONS.find(x=>x.id===lessonId)||LESSONS[0];
     setText('lessonTitle','授業復習');
     setText('lessonSubtitle',lesson?.subtitle||'授業内容を復習');
     setText('lessonCount',lesson?`${lesson.cards.length}問`:'');
-    setText('lessonSummary',lesson?`${lesson.title}：繰り返し練習した文法・表現を集中的に復習します。`:'授業復習はありません。');
+    setText('lessonSummary',lesson?`${lesson.title}：復習期限 ${lessonDueCount(lesson.id)}問／全${lesson.cards.length}問。初回は全問を学び、その後は期限が来た問題を復習します。`:'授業復習はありません。');
+    $('startLesson').textContent=lessonDueCount(lesson?.id)?`この授業の復習待ち ${lessonDueCount(lesson.id)}問を解く →`:'この授業の全問を学習する →';
     $('startLesson').disabled=!lesson;
     renderWeek(week);renderCategories();
   }
@@ -361,8 +412,9 @@
     if(finished){
       const c=session.grades||[0,0,0];const total=session.completed||0;
       let msg=total?`${total}回学習 ・ 覚えた ${c[2]}回 / あやふや ${c[1]}回 / 知らない ${c[0]}回`:'現在の条件で出題できる語彙がありません。';
-      let title='今回の学習は完了です';toggle('finishMore',session.mode!=='category'&&session.mode!=='lesson');
-      if(session.mode==='lesson'){msg+='\n授業復習を完了しました。知らない・あやふやの問題は同じセッション内で再出題されました。';}
+      let title='今回の学習は完了です';toggle('finishMore',session.mode==='lesson');
+      if(session.mode==='lesson'){msg+='\n授業復習を完了しました。回答に応じて翌日以降の復習予定を設定しました。';}
+      else if(session.mode!=='category'){const left=dueCards().length;setText('finishMore',left?'残りの復習を続ける':'新しい単語をさらに学ぶ');}
       else if(session.mode==='category'){
         const cycle=getCycle(session.cat),left=getRemainingCycle(session.cat).length;
         if(left===0){title=`${session.cat}：${cycle.round}周目を完了！`;msg+=`\nこのカテゴリの全${cycle.seen.length}語を一巡しました。次の周回を手動で始められます。`;setText('finishMore','次の周回へ');}
@@ -387,7 +439,8 @@
       toggle('answerCollocations',true);toggle('answerConjugations',true);toggle('answerExample',true);
       setText('answerSource',`出典：${lesson?.source||lesson?.title||'授業資料'}`);
       toggle('studyAnswer',!revealed);toggle('revealBtn',revealed);toggle('ratingButtons',!revealed);
-      $('sayWord').disabled=true;
+      $('sayWord').disabled=!revealed;
+      $('sayWord').title=revealed?'答えのポルトガル語を読み上げ':'答えを見ると発音を聞けます';
       $('previousBtn').disabled=!snapshots.length;
       setText('dockTip',revealed?'自己評価して次へ':'頭の中で答える');
       const done=session.completed,remain=queue.length+1;
@@ -421,7 +474,7 @@
     setText('studyCounter',`${done+1} / ${done+remain}`);
     $('studyProgressFill').style.width=(100*done/Math.max(1,done+remain))+'%';
   }
-  function continueCategory(){if(!session||session.mode!=='category')return;const cat=session.cat;
+  function continueCategory(){if(!session)return;if(session.mode!=='category'){startSession(dueCards().length?'review':'new');return;}const cat=session.cat;
     if(!getRemainingCycle(cat).length){const c=getCycle(cat);c.round++;c.seen=[];persist();}
     startSession('category',cat);
   }
@@ -467,6 +520,7 @@
     }));
     $('startToday').addEventListener('click',()=>startSession('today','all',false));
     $('startNew').addEventListener('click',()=>startSession('new'));
+    $('startReview').addEventListener('click',()=>startSession('review'));
     $('startWeak').addEventListener('click',()=>startSession('weak'));
     const lessonSelect=$('lessonSelect');
     if(lessonSelect){
@@ -474,13 +528,14 @@
       for(const lesson of LESSONS){const option=el('option','',`${lesson.title}（${lesson.cards.length}問）`);option.value=lesson.id;lessonSelect.append(option);}
       lessonSelect.addEventListener('change',renderHome);
     }
-    $('startLesson').addEventListener('click',()=>startLessonSession($('lessonSelect')?.value||LESSONS[0]?.id));
+    $('startLesson').addEventListener('click',()=>{const id=$('lessonSelect')?.value||LESSONS[0]?.id;startLessonSession(id,lessonDueCount(id)>0);});
+    $('startLessonAll').addEventListener('click',()=>startLessonSession($('lessonSelect')?.value||LESSONS[0]?.id,false));
     $('studyBack').addEventListener('click',()=>setPage('home'));
     $('finishHome').addEventListener('click',()=>setPage('home'));
     $('finishMore').addEventListener('click',continueCategory);
     $('revealBtn').addEventListener('click',showAnswer);
     $('previousBtn').addEventListener('click',undo);
-    $('sayWord').addEventListener('click',()=>{if(!current)return;const w=BY_ID.get(current.id);if(w&&(!(!revealed&&current.direction==='recall')))say(w.pt);});
+    $('sayWord').addEventListener('click',()=>{if(!current)return;if(session?.mode==='lesson'){if(!revealed)return;const item=LESSONS.find(l=>l.id===session.lessonId)?.cards.find(c=>c.id===current.id);if(item)say(item.answer);return;}const w=BY_ID.get(current.id);if(w&&(!(!revealed&&current.direction==='recall')))say(w.pt);});
     document.querySelectorAll('[data-grade]').forEach(b=>b.addEventListener('click',()=>gradeCard(Number(b.dataset.grade))));
     for(const key of ['dictSearch','dictCategory','dictStage'])$(key).addEventListener(key==='dictSearch'?'input':'change',()=>{dictShown=60;renderDictionary();});
     $('dictMore').addEventListener('click',()=>{dictShown+=60;renderDictionary();});

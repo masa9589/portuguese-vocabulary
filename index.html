@@ -13,11 +13,11 @@
 <body>
   <div class="shell">
     <header class="header">
-      <div class="brand"><span class="brand-badge">BR</span><div><h1>Meu Vocabulário</h1><p>ブラジルポルトガル語 · 記憶に残る語彙学習</p></div><span class="version">v0.4</span></div>
+      <div class="brand"><span class="brand-badge">BR</span><div><h1>Meu Vocabulário</h1><p>ブラジルポルトガル語 · 記憶に残る語彙学習</p></div><span class="version">v0.5</span></div>
       <nav class="tabs" aria-label="メイン画面">
         <button class="tab active" data-page="home" type="button">ホーム</button>
         <button class="tab" data-page="study" type="button">学習</button>
-        <button class="tab" data-page="dictionary" type="button">単語帳</button>
+        <button class="tab" data-page="dictionary" type="button">単語帳</button><button class="tab" data-page="audio" type="button">音声</button>
       </nav>
     </header>
     <main>
@@ -34,15 +34,27 @@
           <div class="progress-bar"><div id="barMastered" class="bar mastered"></div><div id="barFamiliar" class="bar familiar"></div><div id="barLearning" class="bar learning"></div></div>
           <div class="legend"><span><i class="dot mastered"></i>習得 <b id="countMastered">0</b></span><span><i class="dot familiar"></i>定着途中 <b id="countFamiliar">0</b></span><span><i class="dot learning"></i>学習中 <b id="countLearning">0</b></span><span><i class="dot new"></i>未学習 <b id="countNew">0</b></span></div>
         </div>
+        <section class="panel review-panel" aria-label="復習待ちの確認">
+          <div class="eyebrow">REVIEW FIRST</div>
+          <div class="panel-heading"><h3>忘れないための復習</h3><span class="review-indicator">期限が来たものを優先</span></div>
+          <div class="review-counters">
+            <div><span>語彙の復習</span><strong id="dueVocabCount">0語</strong></div>
+            <div><span>授業の復習</span><strong id="dueLessonCount">0問</strong></div>
+            <div><span>期限超過</span><strong id="overdueCount">0件</strong></div>
+          </div>
+          <p class="muted" id="nextDue">復習予定を確認中...</p>
+          <button id="startReview" class="primary-btn main-start" type="button">語彙の復習を始める →</button>
+          <p class="review-footnote">復習が溜まっても新規学習は禁止しません。授業の復習は下の授業カードから選べます。</p>
+        </section>
         <div class="panel plan">
           <div class="eyebrow">YOUR NEXT STEP</div><div class="panel-heading"><h3>今日の学習</h3><span class="round-badge">↗</span></div>
           <p class="muted" id="planSummary">復習期限を確認しています...</p>
           <button id="startToday" class="primary-btn main-start" type="button">今日の学習を始める <span>→</span></button>
           <div class="secondary-row"><button id="startNew" type="button">新しい語彙</button><button id="startWeak" type="button">苦手語彙</button></div>
         </div>
-        <div class="panel lesson-panel"><div class="panel-heading"><div><h3 id="lessonTitle">授業復習</h3><small id="lessonSubtitle">授業内容を復習</small></div><small id="lessonCount">0問</small></div><label for="lessonSelect" class="lesson-label">復習する授業を選択</label><select id="lessonSelect" class="lesson-select" aria-label="授業回を選択"></select><p class="muted" id="lessonSummary">授業で扱った表現を、通常の語彙学習とは別に復習します。</p><button id="startLesson" class="primary-btn main-start" type="button">選択した授業を復習する <span>→</span></button></div><div class="panel week-panel"><div class="panel-heading"><h3>直近7日間の学習</h3><small>日ごとの問題数・時間</small></div><div class="week-grid" id="weekGrid"></div></div>
+        <div class="panel lesson-panel"><div class="panel-heading"><div><h3 id="lessonTitle">授業復習</h3><small id="lessonSubtitle">授業内容を復習</small></div><small id="lessonCount">0問</small></div><label for="lessonSelect" class="lesson-label">復習する授業を選択</label><select id="lessonSelect" class="lesson-select" aria-label="授業回を選択"></select><p class="muted" id="lessonSummary">授業で扱った表現を、通常の語彙学習とは別に復習します。</p><button id="startLesson" class="primary-btn main-start" type="button">選択した授業を復習する →</button><button id="startLessonAll" class="secondary-btn lesson-all" type="button">この授業の全問をやり直す</button></div><div class="panel week-panel"><div class="panel-heading"><h3>直近7日間の学習</h3><small>日ごとの問題数・時間</small></div><div class="week-grid" id="weekGrid"></div></div>
         <div class="panel categories"><div class="panel-heading"><h3>カテゴリ別に学ぶ</h3><small>1周するまで重複なし</small></div><div class="category-grid" id="categoryGrid"></div></div>
-        <details class="panel settings"><summary>学習データのバックアップ・復元</summary><p>学習履歴はこのブラウザに保存されます。機種変更前にはバックアップしてください。</p><div class="settings-row"><button id="exportData" type="button">履歴をファイルに保存</button><button id="importTrigger" type="button">履歴ファイルを読み込む</button><input type="file" accept="application/json,.json" id="importFile" class="hidden"></div><p class="status-note" id="importStatus" aria-live="polite"></p></details>
+        <details class="panel settings"><summary>学習データのバックアップ・復元</summary><p>学習履歴はこのブラウザに保存されます。機種変更前にはバックアップしてください。</p><div class="settings-row"><button id="exportData" type="button">履歴をファイルに保存</button><button id="importTrigger" type="button">履歴ファイルを読み込む</button><input type="file" accept="application/json,.json" id="importFile" class="hidden"></div><p class="status-note" id="importStatus" aria-live="polite"></p><p class="status-note" id="offlineStatus" aria-live="polite">オフライン準備を確認中...</p></details>
         <p class="footer-note">教材テーマ別の補充語彙を含みます。原典3冊の全ページ照合は未完了です。</p>
       </section>
       <section class="page hidden" id="page-study">
@@ -63,12 +75,26 @@
           </div>
         </div>
         <div id="studyFinished" class="panel finish hidden"><div class="finish-mark">✓</div><h2 id="finishTitle">今回の学習は完了です</h2><p id="finishSummary"></p><button class="primary-btn" id="finishHome" type="button">ホームへ戻る</button><button id="finishMore" class="secondary-btn" type="button">続きを学ぶ</button></div>
-        <p class="study-note" id="studyHint">同じ日に何度正解しても、習得判定は日を空けた復習を重視します。</p>
+        <p class="study-note" id="studyHint">学習上限はありません。日をまたいで思い出せた語彙を重視します。</p>
       </section>
       <section class="page hidden" id="page-dictionary">
         <div class="dict-heading"><div class="eyebrow">WORD LIBRARY</div><h2>単語帳</h2><p>意味、性、活用、関連表現を確認できます。</p></div>
         <div class="panel dict-filters"><label for="dictSearch">ポルトガル語・日本語で検索</label><input id="dictSearch" type="search" placeholder="例：negociar / 交渉" autocomplete="off"><div class="filter-grid"><select id="dictCategory" aria-label="カテゴリ"><option value="all">すべてのカテゴリ</option></select><select id="dictStage" aria-label="習熟度"><option value="all">すべての習熟度</option><option value="new">未学習</option><option value="learning">学習中</option><option value="familiar">定着途中</option><option value="mastered">習得済み</option></select></div></div>
         <div class="dict-count" id="dictCount">0語</div><div id="dictResults" class="word-list"></div><button class="more-btn hidden" id="dictMore" type="button">さらに表示</button>
+      </section>
+      <section class="page hidden" id="page-audio">
+        <div class="dict-heading"><div class="eyebrow">LISTENING LIBRARY</div><h2>音声教材</h2><p>手元の音声ファイルをこの端末に保存し、オフラインで再生できます。</p></div>
+        <div class="panel audio-panel">
+          <h3>音声ファイルを端末に登録</h3>
+          <p class="muted">MP3などの音声を選択してください。ファイルはGitHubへ送信されず、このブラウザの端末内に保存されます。Faixa 16は元教材に存在しない欠番として扱います。</p>
+          <label class="audio-import-label" for="audioImport">音声ファイルを選ぶ（複数可）</label>
+          <input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.wav" multiple>
+          <p id="audioImportStatus" class="status-note" aria-live="polite">登録済みの音声を確認しています...</p>
+          <audio id="audioPlayer" controls preload="none" class="audio-player"></audio>
+          <p id="audioNowPlaying" class="status-note">音声を選択してください。</p>
+          <div id="audioList" class="audio-list"></div>
+        </div>
+        <p class="footer-note">音声はブラウザのIndexedDBに保存されます。別端末には自動同期されません。ブラウザのデータ削除で失われるため、原本を保管してください。</p>
       </section>
     </main>
   </div>
@@ -82,5 +108,6 @@
   <script src="lessons.js"></script>
   <script src="app.js"></script>
   <script src="pwa.js"></script>
+  <script src="audio.js"></script>
 </body>
 </html>

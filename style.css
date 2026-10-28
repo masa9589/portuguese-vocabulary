@@ -18,3 +18,27 @@
 
 .lesson-label{display:block;font-size:12px;font-weight:750;color:#435a6c;margin:14px 0 7px}
 .lesson-select{width:100%;min-height:45px;border:1px solid #dce5e9;border-radius:10px;padding:9px 12px;background:#fff;color:#1e3548;font-size:13px}
+
+/* v0.5: due reviews visible before new material. */
+.review-panel{border:1px solid #b9dbcd;background:linear-gradient(160deg,#fff 60%,#f4fbf7)}
+.review-panel h3{font-size:20px;margin:6px 0}
+.review-indicator{font-size:10px;color:#206d53;background:#e6f5eb;padding:6px 9px;border-radius:999px}
+.review-counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0 12px}
+.review-counters>div{background:#f2f7f6;border-radius:11px;padding:12px 10px;min-width:0}
+.review-counters span{display:block;color:#627f7c;font-size:11px}
+.review-counters strong{display:block;color:#155d48;font-size:23px;margin-top:5px}
+.review-footnote{font-size:11px;color:#748a83;line-height:1.6;margin:11px 0 0}
+.primary-btn:disabled{background:#d9e4e0;color:#6c8379;cursor:default}
+.lesson-all{width:100%;margin-top:8px}
+@media(max-width:360px){.review-counters strong{font-size:19px}.review-counters>div{padding:9px 6px}}
+
+/* Offline audio collection */
+.audio-panel h3{font-size:16px;margin:0 0 8px}
+.audio-import-label{display:inline-block;padding:12px 16px;background:#166d55;color:white;border-radius:10px;font-weight:750;font-size:13px;cursor:pointer;margin:10px 0}
+#audioImport{position:absolute;left:-9999px;width:1px;height:1px}
+.audio-player{display:block;width:100%;margin:15px 0 6px}
+.audio-list{display:grid;gap:7px;margin-top:16px}
+.audio-item{display:flex;align-items:center;gap:9px;background:#f7fafa;border:1px solid #e2eaea;border-radius:10px;padding:6px}
+.audio-play{flex:1;min-width:0;text-align:left;overflow-wrap:anywhere;background:none;border:0;padding:10px 7px;color:#264f4b;font-weight:750}
+.audio-delete{background:#fceeee;color:#9a4545;border:0;border-radius:8px;padding:8px;font-size:11px}
+@media(max-width:400px){.tab{font-size:11px;padding:10px 4px}}
