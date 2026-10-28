@@ -1,6 +1,254 @@
 /* Today's lesson review — 2026-10-20. Built from the lesson notes, transcript, and supplied finance document. */
 window.LESSONS = [
   {
+    "id": "lesson-ser-estar-previous",
+    "title": "前回の授業：ser / estar と日常会話",
+    "subtitle": "現在形・形容詞・口語・旅行と生活表現",
+    "source": "手書き授業メモと文字起こし（ポルトガル語誤認識のため補充問題を含む）",
+    "cards": [
+      {
+        "id": "ser_01",
+        "type": "fill",
+        "prompt": "Eu ___ japonês.",
+        "answer": "sou",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "ser の eu の現在形。eu sou / você é / nós somos / vocês são。 恒常的な特徴・国籍を表す。"
+      },
+      {
+        "id": "ser_02",
+        "type": "fill",
+        "prompt": "Você ___ inteligente.",
+        "answer": "é",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "ser の você/ele/ela の現在形は é。inteligente は男性・女性とも同形。 恒常的な性質としての評価。"
+      },
+      {
+        "id": "ser_03",
+        "type": "fill",
+        "prompt": "Nós ___ brasileiros.",
+        "answer": "somos",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "ser：eu sou / você é / nós somos / vocês são。 主語が nós のとき somos。"
+      },
+      {
+        "id": "ser_04",
+        "type": "fill",
+        "prompt": "Vocês ___ competentes.",
+        "answer": "são",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "ser：eu sou / você é / nós somos / vocês são。competente の複数は competentes。 複数の人の特徴を表す。"
+      },
+      {
+        "id": "ser_05",
+        "type": "fill",
+        "prompt": "Eu ___ cansado hoje.",
+        "answer": "estou",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "estar：eu estou / você está / nós estamos / vocês estão。 その日の一時的な状態を表す。"
+      },
+      {
+        "id": "ser_06",
+        "type": "fill",
+        "prompt": "Você ___ cansada?",
+        "answer": "está",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "estar：eu estou / você está / nós estamos / vocês estão。cansado は男性、cansada は女性。 疲れた状態を尋ねる。"
+      },
+      {
+        "id": "ser_07",
+        "type": "fill",
+        "prompt": "Nós ___ no escritório agora.",
+        "answer": "estamos",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "estar：eu estou / você está / nós estamos / vocês estão。 場所や一時的な所在は estar を使う。"
+      },
+      {
+        "id": "ser_08",
+        "type": "fill",
+        "prompt": "Vocês ___ no Brasil?",
+        "answer": "estão",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "estar の vocês の現在形。発音・表記は estão（鼻母音）。 今いる場所を尋ねる。"
+      },
+      {
+        "id": "ser_09",
+        "type": "translate",
+        "prompt": "「私は日本人です」をポルトガル語で。",
+        "answer": "Eu sou japonês.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "国籍は ser を使う。話し手が女性なら japonesa。 男性の話し手を想定。"
+      },
+      {
+        "id": "ser_10",
+        "type": "translate",
+        "prompt": "「私は今、ブラジルにいます」をポルトガル語で。",
+        "answer": "Eu estou no Brasil.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "場所は estar を使う。em + o Brasil = no Brasil。 国籍を表す sou brasileiro との違いに注意。"
+      },
+      {
+        "id": "ser_11",
+        "type": "translate",
+        "prompt": "「彼女は有能です」をポルトガル語で。",
+        "answer": "Ela é competente.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "competente は男女で形が変わらない。ser + competente は人物の特性を表す。"
+      },
+      {
+        "id": "ser_12",
+        "type": "translate",
+        "prompt": "「彼女は疲れています」をポルトガル語で。",
+        "answer": "Ela está cansada.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "estar は一時的な状態。cansada は女性単数、男性なら cansado。"
+      },
+      {
+        "id": "ser_13",
+        "type": "fill",
+        "prompt": "Ela ___ inteligente, mas hoje ___ cansada.",
+        "answer": "é / está",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "ser と estar を対比。inteligente は特徴、cansada は今の状態。"
+      },
+      {
+        "id": "ser_14",
+        "type": "translate",
+        "prompt": "口語の「私は疲れてる」をポルトガル語で。",
+        "answer": "Tô cansado.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "tô は estou の口語形。書面・フォーマルな場では Estou cansado. が無難。 女性なら cansada。"
+      },
+      {
+        "id": "ser_15",
+        "type": "translate",
+        "prompt": "口語の「あなたは疲れてる？」をポルトガル語で。",
+        "answer": "Tá cansado?",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "tá は está の口語形。相手が女性なら cansada。 口語と標準形を区別する。"
+      },
+      {
+        "id": "ser_16",
+        "type": "translate",
+        "prompt": "「ヘッドホン／イヤホン」をポルトガル語で。",
+        "answer": "fone de ouvido",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "fone = 音声を聞く機器、de ouvido = 耳の。ブラジルでは fone de ouvido が一般的。"
+      },
+      {
+        "id": "ser_17",
+        "type": "translate",
+        "prompt": "「これは何という名前ですか？」をポルトガル語で。",
+        "answer": "Como se chama isso?",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "chamar-se = ～という名前である。Como se chama ...? は物の名前を尋ねる表現。 手書きの「que ... é o fone ...?」の意図に沿う自然な表現として補足。"
+      },
+      {
+        "id": "ser_18",
+        "type": "translate",
+        "prompt": "「航空券」をポルトガル語で。",
+        "answer": "passagem aérea",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "passagem は切符・乗車券・航空券の意味。aérea を加えると航空券と明確になる。"
+      },
+      {
+        "id": "ser_19",
+        "type": "translate",
+        "prompt": "「乗客」を男性形・女性形で答える。",
+        "answer": "passageiro / passageira",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "passageiro は男性、passageira は女性。passagem（チケット）と区別。"
+      },
+      {
+        "id": "ser_20",
+        "type": "fill",
+        "prompt": "Vou ___ Japão na semana que vem.",
+        "answer": "para o",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "para + o Japão = para o Japão。口語では pro Japão（para o の縮約）がよく使われる。 移動の目的地を表す。"
+      },
+      {
+        "id": "ser_21",
+        "type": "translate",
+        "prompt": "口語の「日本へ（行く）」をポルトガル語で。",
+        "answer": "pro Japão",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "pro = para o の口語縮約。標準的には para o Japão。"
+      },
+      {
+        "id": "ser_22",
+        "type": "fill",
+        "prompt": "Se você ___, podemos conversar amanhã.",
+        "answer": "quiser",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "quiser は querer の未来接続法（futuro do subjuntivo）。se você quiser = もしよければ／もし望むなら。 現在形 quer と混同しない。"
+      },
+      {
+        "id": "ser_23",
+        "type": "translate",
+        "prompt": "「もしよければ、明日話せます」をポルトガル語で。",
+        "answer": "Se você quiser, podemos conversar amanhã.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "se + 未来接続法 quiser は未来の仮定。querer の現在形：eu quero / você quer / nós queremos / vocês querem。"
+      },
+      {
+        "id": "ser_24",
+        "type": "fill",
+        "prompt": "A mesa ___ branca.",
+        "answer": "é",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "色・恒常的な特徴の説明には ser。branca は女性単数の mesa に一致する。 形容詞の性・数一致。"
+      },
+      {
+        "id": "ser_25",
+        "type": "fill",
+        "prompt": "Os funcionários ___ competentes.",
+        "answer": "são",
+        "instruction": "空欄に入る形を答えてください。",
+        "note": "competente は単数男女同形、複数 competentes。ser の vocês/eles/elas は são。"
+      },
+      {
+        "id": "ser_26",
+        "type": "translate",
+        "prompt": "「私は心配しています」をポルトガル語で。",
+        "answer": "Estou preocupado.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "preocupado / preocupada は一時的な感情状態として estar を使う。 女性なら preocupada。"
+      },
+      {
+        "id": "ser_27",
+        "type": "translate",
+        "prompt": "「このレストランはおいしいです（料理がおいしい）」を自然なポルトガル語で。",
+        "answer": "A comida deste restaurante é gostosa.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "gostoso/gostosa は形容詞。comida（女性名詞）に合わせて gostosa。 授業のレストランの話題から作った補充問題。"
+      },
+      {
+        "id": "ser_28",
+        "type": "translate",
+        "prompt": "「不動産会社」をブラジルポルトガル語で。",
+        "answer": "imobiliária",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "imobiliária は不動産会社。imóvel は不動産・物件。 文字起こし冒頭に不動産会社の話題があるが、正確な発話の復元ではない。"
+      },
+      {
+        "id": "ser_29",
+        "type": "translate",
+        "prompt": "「技術者」をポルトガル語で。",
+        "answer": "técnico / técnica",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "técnico（男性）/ técnica（女性）。修理の担当者の文脈で使う。"
+      },
+      {
+        "id": "ser_30",
+        "type": "translate",
+        "prompt": "「明日の午後に来ます」をポルトガル語で。",
+        "answer": "Ele vem amanhã à tarde.",
+        "instruction": "ポルトガル語で答えてください。",
+        "note": "vir（来る）の現在形 vem を近い未来に使える。amanhã à tarde = 明日の午後。 文字起こし冒頭の訪問予定の話題から作った補充問題。"
+      }
+    ]
+  },
+  {
     id: 'lesson-2026-10-20',
     title: '2026-10-20 今日のレッスン',
     subtitle: '医薬品・販売・前置詞・財務表現',

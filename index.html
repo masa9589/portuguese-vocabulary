@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f2f5f5">
   <title>Meu Vocabulário | 定着するポルトガル語</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="shell">
     <header class="header">
-      <div class="brand"><span class="brand-badge">BR</span><div><h1>Meu Vocabulário</h1><p>ブラジルポルトガル語 · 記憶に残る語彙学習</p></div><span class="version">v0.2</span></div>
+      <div class="brand"><span class="brand-badge">BR</span><div><h1>Meu Vocabulário</h1><p>ブラジルポルトガル語 · 記憶に残る語彙学習</p></div><span class="version">v0.4</span></div>
       <nav class="tabs" aria-label="メイン画面">
         <button class="tab active" data-page="home" type="button">ホーム</button>
         <button class="tab" data-page="study" type="button">学習</button>
@@ -37,7 +40,7 @@
           <button id="startToday" class="primary-btn main-start" type="button">今日の学習を始める <span>→</span></button>
           <div class="secondary-row"><button id="startNew" type="button">新しい語彙</button><button id="startWeak" type="button">苦手語彙</button></div>
         </div>
-        <div class="panel lesson-panel"><div class="panel-heading"><div><h3 id="lessonTitle">今日のレッスン</h3><small id="lessonSubtitle">授業内容を復習</small></div><small id="lessonCount">0問</small></div><p class="muted" id="lessonSummary">今日の授業で扱った表現を、通常の語彙学習とは別に復習します。</p><button id="startLesson" class="primary-btn main-start" type="button">今日のレッスンを復習する <span>→</span></button></div><div class="panel week-panel"><div class="panel-heading"><h3>直近7日間の学習</h3><small>日ごとの問題数・時間</small></div><div class="week-grid" id="weekGrid"></div></div>
+        <div class="panel lesson-panel"><div class="panel-heading"><div><h3 id="lessonTitle">授業復習</h3><small id="lessonSubtitle">授業内容を復習</small></div><small id="lessonCount">0問</small></div><label for="lessonSelect" class="lesson-label">復習する授業を選択</label><select id="lessonSelect" class="lesson-select" aria-label="授業回を選択"></select><p class="muted" id="lessonSummary">授業で扱った表現を、通常の語彙学習とは別に復習します。</p><button id="startLesson" class="primary-btn main-start" type="button">選択した授業を復習する <span>→</span></button></div><div class="panel week-panel"><div class="panel-heading"><h3>直近7日間の学習</h3><small>日ごとの問題数・時間</small></div><div class="week-grid" id="weekGrid"></div></div>
         <div class="panel categories"><div class="panel-heading"><h3>カテゴリ別に学ぶ</h3><small>1周するまで重複なし</small></div><div class="category-grid" id="categoryGrid"></div></div>
         <details class="panel settings"><summary>学習データのバックアップ・復元</summary><p>学習履歴はこのブラウザに保存されます。機種変更前にはバックアップしてください。</p><div class="settings-row"><button id="exportData" type="button">履歴をファイルに保存</button><button id="importTrigger" type="button">履歴ファイルを読み込む</button><input type="file" accept="application/json,.json" id="importFile" class="hidden"></div><p class="status-note" id="importStatus" aria-live="polite"></p></details>
         <p class="footer-note">教材テーマ別の補充語彙を含みます。原典3冊の全ページ照合は未完了です。</p>
@@ -78,5 +81,6 @@
   <script src="vocabulary.js"></script>
   <script src="lessons.js"></script>
   <script src="app.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>

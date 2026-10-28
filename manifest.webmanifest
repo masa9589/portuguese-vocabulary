@@ -1,0 +1,25 @@
+{
+  "name": "Meu Vocabulário - Português Brasileiro",
+  "short_name": "Meu Vocabulário",
+  "description": "ブラジルポルトガル語の語彙と授業復習",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f5f5",
+  "theme_color": "#147e69",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

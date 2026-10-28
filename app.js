@@ -333,11 +333,12 @@
     const budget=newBudget(due);
     setText('planSummary',`復習 ${due}語 ・ 新しい語彙 最大${budget}語（1日上限${NEW_PER_DAY}語）`);
     setText('startToday',session&&current?'学習を続ける →':'今日の学習を始める →');
-    const lesson=LESSONS[0];
-    setText('lessonTitle',lesson?.title||'今日のレッスン');
+    const lessonId=$('lessonSelect')?.value;
+    const lesson=LESSONS.find(x=>x.id===lessonId)||LESSONS[0];
+    setText('lessonTitle','授業復習');
     setText('lessonSubtitle',lesson?.subtitle||'授業内容を復習');
     setText('lessonCount',lesson?`${lesson.cards.length}問`:'');
-    setText('lessonSummary',lesson?'授業で繰り返した表現・先生の訂正・財務語彙を、このセッションだけで集中的に復習します。':'今日の授業復習はありません。');
+    setText('lessonSummary',lesson?`${lesson.title}：繰り返し練習した文法・表現を集中的に復習します。`:'授業復習はありません。');
     $('startLesson').disabled=!lesson;
     renderWeek(week);renderCategories();
   }
@@ -361,7 +362,7 @@
       const c=session.grades||[0,0,0];const total=session.completed||0;
       let msg=total?`${total}回学習 ・ 覚えた ${c[2]}回 / あやふや ${c[1]}回 / 知らない ${c[0]}回`:'現在の条件で出題できる語彙がありません。';
       let title='今回の学習は完了です';toggle('finishMore',session.mode!=='category'&&session.mode!=='lesson');
-      if(session.mode==='lesson'){msg+='\n今日の授業復習を完了しました。知らない・あやふやの問題は同じセッション内で再出題されました。';}
+      if(session.mode==='lesson'){msg+='\n授業復習を完了しました。知らない・あやふやの問題は同じセッション内で再出題されました。';}
       else if(session.mode==='category'){
         const cycle=getCycle(session.cat),left=getRemainingCycle(session.cat).length;
         if(left===0){title=`${session.cat}：${cycle.round}周目を完了！`;msg+=`\nこのカテゴリの全${cycle.seen.length}語を一巡しました。次の周回を手動で始められます。`;setText('finishMore','次の周回へ');}
@@ -374,7 +375,7 @@
       const lesson=LESSONS.find(x=>x.id===session.lessonId);
       const item=lesson?.cards.find(x=>x.id===current.id);
       if(!item){current=queue.shift()||null;renderStudy();return;}
-      setText('studyCategory','今日のレッスン'+(current.isRetry?' · もう一度':''));
+      setText('studyCategory','授業復習'+(current.isRetry?' · もう一度':''));
       setText('studyDirection',item.type==='fill'?'穴埋め':'翻訳');
       setText('studyInstruction',item.instruction||'答えてください');
       setText('studyPrompt',item.prompt);
@@ -384,7 +385,7 @@
       if(item.note)add.append(el('span','',item.note));
       toggle('answerAdditional',!add.childElementCount);
       toggle('answerCollocations',true);toggle('answerConjugations',true);toggle('answerExample',true);
-      setText('answerSource','出典：2026-10-20 授業メモ・音声文字起こし・「Gestão financeira em uma empresa farmacêutica」');
+      setText('answerSource',`出典：${lesson?.source||lesson?.title||'授業資料'}`);
       toggle('studyAnswer',!revealed);toggle('revealBtn',revealed);toggle('ratingButtons',!revealed);
       $('sayWord').disabled=true;
       $('previousBtn').disabled=!snapshots.length;
@@ -467,7 +468,13 @@
     $('startToday').addEventListener('click',()=>startSession('today','all',false));
     $('startNew').addEventListener('click',()=>startSession('new'));
     $('startWeak').addEventListener('click',()=>startSession('weak'));
-    $('startLesson').addEventListener('click',()=>startLessonSession(LESSONS[0]?.id));
+    const lessonSelect=$('lessonSelect');
+    if(lessonSelect){
+      lessonSelect.replaceChildren();
+      for(const lesson of LESSONS){const option=el('option','',`${lesson.title}（${lesson.cards.length}問）`);option.value=lesson.id;lessonSelect.append(option);}
+      lessonSelect.addEventListener('change',renderHome);
+    }
+    $('startLesson').addEventListener('click',()=>startLessonSession($('lessonSelect')?.value||LESSONS[0]?.id));
     $('studyBack').addEventListener('click',()=>setPage('home'));
     $('finishHome').addEventListener('click',()=>setPage('home'));
     $('finishMore').addEventListener('click',continueCategory);
